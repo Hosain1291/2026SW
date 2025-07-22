@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026년 스웨덴 총선 시뮬레이터</title>
+
+    <!-- Tailwind CSS for basic structure -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Custom Font */
+        @font-face {
+            font-family: 'Paperlogy-8ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        /* Global Styles */
+        body {
+            font-family: 'Paperlogy-8ExtraBold', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        
+        /* Blurred background image */
+        .background-image-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1599913993865-57596193e2a5?q=80&w=1932&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px);
+            transform: scale(1.1);
+            z-index: -1;
+        }
+
+        /* Main container */
+        .content-wrapper {
+            width: 100%;
+            max-width: 700px;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.75rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Party input cards */
+        .party-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .party-card {
+            width: 100%;
+            height: 130px;
+            border-radius: 12px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .party-card input {
+            font-family: 'Paperlogy-8ExtraBold', sans-serif;
+            width: 70px;
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 0.25rem 0;
+            border-radius: 4px;
+            border: none;
+            padding: 4px;
+            color: rgba(255, 255, 255, 0.9);
+            background-color: transparent;
+            border-bottom: 2px solid rgba(255,255,255,0.5);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .party-card input:focus {
+            color: white;
+            border-bottom-color: white;
+            outline: none;
+        }
+        
+        .party-card small {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            line-height: 1.2;
+        }
+
+        /* Calculate Button */
+        .calculate-button {
+            font-family: 'Paperlogy-8ExtraBold', sans-serif;
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.25rem;
+            background: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .calculate-button:hover {
+            background: #333;
+        }
+
+        /* Results Section */
+        .results-container {
+            margin-top: 2.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            visibility: hidden;
+        }
+        .results-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .seat-projection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .projection-party-card {
+            width: 100%;
+            height: 120px;
+            border-radius: 12px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-align: center;
+            padding: 10px;
+        }
+
+        .projection-party-name { font-size: 1.1em; margin-bottom: 5px; }
+        .projection-seats { font-size: 2.5em; line-height: 1; }
+
+        /* Bar Chart */
+        .seat-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #e5e7eb;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 2rem;
+            display: flex;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .seat-bar-segment {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-image-blur"></div>
+    <div class="content-wrapper">
+        <h2>🗳️ 2026년 스웨덴 총선 시뮬레이터</h2>
+
+        <div class="party-grid" id="partyGrid">
+            <!-- Party input cards will be rendered here by JS -->
+        </div>
+
+        <button class="calculate-button" onclick="runPrediction()">결과 계산</button>
+
+        <div id="resultsContainer" class="results-container">
+            <h2 id="resultsTitle" style="font-size: 1.5rem;">예상 의석수 (총 349석)</h2>
+            <div class="seat-projection-grid" id="seatProjectionGrid"></div>
+            <div class="seat-bar-container" id="seatBarContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const PARTIES = {
+            's': { name: '사회민주당', color: '#E8112d' },
+            'sd': { name: '스웨덴 민주당', color: '#DDDD00' },
+            'm': { name: '온건당', color: '#52BDEC' },
+            'v': { name: '좌파당', color: '#DA291C' },
+            'c': { name: '중앙당', color: '#009933' },
+            'mp': { name: '녹색당', color: '#83CF39' },
+            'kd': { name: '기독교민주당', color: '#009688' },
+            'l': { name: '자유당', color: '#00B2E2' },
+        };
+        
+        const TOTAL_SEATS = 349;
+        const ELECTION_THRESHOLD = 4.0; // 4%
+
+        // Based on recent polling data
+        const INITIAL_VOTE_SHARES = { 
+            s: 35.1, 
+            sd: 20.5, 
+            m: 18.2, 
+            v: 8.0, 
+            c: 4.8,
+            mp: 5.2,
+            kd: 4.1,
+            l: 3.5
+        };
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPartyCards();
+        });
+
+        // --- UI SETUP ---
+        function renderPartyCards() {
+            const grid = document.getElementById("partyGrid");
+            grid.innerHTML = "";
+            Object.keys(PARTIES).forEach(key => {
+                const party = PARTIES[key];
+                const card = document.createElement("div");
+                card.className = "party-card";
+                card.style.backgroundColor = party.color;
+                
+                // SD party text color for readability
+                if (key === 'sd') {
+                    card.style.color = '#333';
+                    card.innerHTML = `<div>${party.name}</div><input type="number" id="${key}-vote" value="${INITIAL_VOTE_SHARES[key]}" step="0.1" style="color: #333; border-bottom-color: rgba(0,0,0,0.4);"><small>정당 득표율(%)</small>`;
+                } else {
+                    card.innerHTML = `<div>${party.name}</div><input type="number" id="${key}-vote" value="${INITIAL_VOTE_SHARES[key]}" step="0.1"><small>정당 득표율(%)</small>`;
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        // --- CORE LOGIC & UI UPDATE ---
+        function runPrediction() {
+            const currentShares = {};
+            Object.keys(PARTIES).forEach(key => {
+                currentShares[key] = parseFloat(document.getElementById(`${key}-vote`).value) || 0;
+            });
+
+            // Step 1: Filter for parties that meet the 4% threshold
+            const eligibleParties = {};
+            Object.keys(currentShares).forEach(key => {
+                if (currentShares[key] >= ELECTION_THRESHOLD) {
+                    eligibleParties[key] = currentShares[key];
+                }
+            });
+
+            // Step 2: Allocate seats using the modified Sainte-Laguë method
+            const finalSeats = {};
+            Object.keys(PARTIES).forEach(key => { finalSeats[key] = 0; });
+
+            // Create a list of all quotients for eligible parties
+            const quotients = [];
+            Object.keys(eligibleParties).forEach(key => {
+                let votes = eligibleParties[key];
+                // The first divisor in the modified method is 1.2 (previously 1.4), but we use 1 for simplicity.
+                // Standard Sainte-Laguë uses odd divisors: 1, 3, 5...
+                for (let i = 0; i < TOTAL_SEATS; i++) {
+                    quotients.push({
+                        party: key,
+                        quotient: votes / (2 * i + 1)
+                    });
+                }
+            });
+
+            // Sort quotients in descending order
+            quotients.sort((a, b) => b.quotient - a.quotient);
+
+            // Assign the top 349 quotients to parties
+            for (let i = 0; i < TOTAL_SEATS; i++) {
+                if (quotients[i]) {
+                    finalSeats[quotients[i].party]++;
+                }
+            }
+
+            // --- Update UI ---
+            const resultsContainer = document.getElementById('resultsContainer');
+            const seatProjectionGrid = document.getElementById('seatProjectionGrid');
+            const seatBarContainer = document.getElementById('seatBarContainer');
+            seatProjectionGrid.innerHTML = '';
+            seatBarContainer.innerHTML = '';
+
+            const sortedParties = Object.keys(finalSeats).sort((a,b) => finalSeats[b] - finalSeats[a]);
+
+            sortedParties.forEach(key => {
+                const party = PARTIES[key];
+                const seats = finalSeats[key];
+                if (seats === 0 && currentShares[key] < ELECTION_THRESHOLD) return; // Hide parties with 0 seats unless they were close
+                
+                const resultCard = document.createElement("div");
+                resultCard.className = "projection-party-card";
+                resultCard.style.backgroundColor = party.color;
+                if (key === 'sd') resultCard.style.color = '#333';
+
+                resultCard.innerHTML = `<div class="projection-party-name">${party.name}</div><div class="projection-seats">${seats}</div>`;
+                seatProjectionGrid.appendChild(resultCard);
+
+                if (seats > 0) {
+                    const segment = document.createElement('div');
+                    segment.className = 'seat-bar-segment';
+                    segment.style.backgroundColor = party.color;
+                    segment.style.width = `${(seats / TOTAL_SEATS) * 100}%`;
+                    if (key === 'sd') segment.style.color = '#333';
+
+                    if ((seats / TOTAL_SEATS) > 0.05) {
+                        segment.textContent = `${party.name.split(' ')[0]} ${seats}`;
+                    }
+                    seatBarContainer.appendChild(segment);
+                }
+            });
+            
+            resultsContainer.classList.add('visible');
+        }
+    </script>
+</body>
+</html>
